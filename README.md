@@ -3,10 +3,11 @@
 ## 目录结构
 
 ```plain
-lego
 ├─ .changeset # 用于进行自动化版本控制和包发布相关任务的配置
 ├─ .vscode # 用于指定在使用 Visual Studio Code 时使用的特定设置
 ├─ packages
+│   ├─ backend # 后端服务
+│   └─ frontend # 前端应用
 ├─ .cz-config.js # 用于指定在使用 Commitizen 时使用的特定设置
 ├─ .editorconfig  # 编辑器读取文件格式及样式定义配置 http://editorconfig.org
 ├─ .gitattributes # 自定义指定文件属性

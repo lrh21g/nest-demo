@@ -23,10 +23,9 @@ export default antfu(
     },
   },
   {
-    // Remember to specify the file glob here, otherwise it might cause the vue plugin to handle non-vue files
     files: ['**/*.ts'],
     rules: {
-      '@typescript-eslint/consistent-type-imports': 'off',
+      'ts/consistent-type-imports': 'off',
     },
   },
 )
