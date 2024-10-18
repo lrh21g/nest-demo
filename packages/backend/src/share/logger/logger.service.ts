@@ -8,8 +8,6 @@ import DailyRotateFile from 'winston-daily-rotate-file'
 
 import { env, envString, isDev } from '~/env'
 
-export const loggerLevels = winston.config.syslog.levels
-
 const consoleTransports = new winston.transports.Console({
   format: winston.format.combine(
     winston.format.errors({ stack: true }),
@@ -82,6 +80,5 @@ if (isDev) {
 }
 
 export const LoggerService = WinstonModule.createLogger({
-  levels: loggerLevels,
   transports: winstonTransportsList,
 })
