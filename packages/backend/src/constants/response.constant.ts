@@ -2,7 +2,7 @@ export const RESPONSE_SUCCESS_CODE = 200
 
 export const RESPONSE_SUCCESS_MSG = 'success'
 
-export enum ContentTypeEnum {
+export enum ContentType {
   // json
   JSON = 'application/json;charset=UTF-8',
   // form-data qs

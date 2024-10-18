@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus } from '@nestjs/common'
 
-import { ErrorEnum, RESPONSE_SUCCESS_CODE } from '~/constants'
+import { ErrorCode, RESPONSE_SUCCESS_CODE } from '~/constants'
 
 // 自定义的业务异常类 BusinessException，继承自 NestJS 的 HttpException
 // 用于在业务逻辑中抛出自定义的异常，并提供了灵活的错误信息和状态码处理机制
 export class BusinessException extends HttpException {
   private errorCode: number
 
-  constructor(error: ErrorEnum | string) {
-    // 如果是非 ErrorEnum
+  constructor(error: ErrorCode | string) {
+    // 如果是非 ErrorCode
     if (!error.includes(':')) {
       super(
         // 通过 HttpException.createBody() 方法创建一个包含 code 和 message 的响应体

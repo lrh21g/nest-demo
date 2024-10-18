@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { Request, Response } from 'express'
 import { QueryFailedError } from 'typeorm'
-import { ErrorEnum } from '~/constants'
+import { ErrorCode } from '~/constants'
 import { isDev } from '~/env'
 import { BusinessException } from '../exceptions'
 
@@ -48,7 +48,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       // 生产环境下，隐藏错误信息
       if (!isDev)
-        message = ErrorEnum.SERVER_ERROR?.split(':')[1]
+        message = ErrorCode.SERVER_ERROR?.split(':')[1]
     }
     else {
       // 如果不是 500 错误，记录警告日志，并输出请求的路径和错误信息
