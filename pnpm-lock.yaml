@@ -152,6 +152,9 @@ importers:
       passport-local:
         specifier: ^1.0.0
         version: 1.0.0
+      qs:
+        specifier: ^6.13.0
+        version: 6.13.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
