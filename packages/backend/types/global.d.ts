@@ -3,8 +3,12 @@ declare global {
   // 定义了一个名为 Uuid 的类型，表示一个字符串类型的 UUID（通用唯一标识符）。
   export type Uuid = string & { _uuidBrand: undefined }
 
-  // 定义了一个名为 Todo 的类型，表示一个待办事项
-  export type Todo = any & { _todoBrand: undefined }
+  // 定义了一个名为 IBaseResponse 的类型，表示一个基础返回数据结构
+  export interface IBaseResponse<T = any> {
+    message: string
+    code: number
+    data?: T
+  }
 
   // 通过扩展 Array 接口，添加了一些自定义方法
   interface Array<T> {
