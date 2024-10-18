@@ -1,4 +1,5 @@
 export * from './auth-user.decorator'
+export * from './bypass.decorator'
 export * from './field.decorators'
 export * from './http.decorators'
 export * from './property.decorators'
