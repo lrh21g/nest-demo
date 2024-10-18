@@ -2,12 +2,14 @@ import cluster from 'node:cluster'
 import process from 'node:process'
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
-
+import { NestFactory, Reflector } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
+
 import { AppModule } from './app.module'
+import { AllExceptionsFilter } from './common/filters/any-exception.filter'
+import { LoggingInterceptor, TimeoutInterceptor, TransformInterceptor } from './common/interceptors'
 import { ConfigKeyPaths } from './config'
-import { isMainProcess } from './env'
+import { isDev, isMainProcess } from './env'
 import { LoggerService } from './share/logger/logger.service'
 
 async function bootstrap(): Promise<NestExpressApplication> {
@@ -27,15 +29,22 @@ async function bootstrap(): Promise<NestExpressApplication> {
       infer: true,
     },
   )
-  // const reflector = app.get(Reflector)
-
-  // app.useGlobalFilters(
-  //   new HttpExceptionFilter(reflector),
-  //   new QueryFailedFilter(reflector),
-  // )
+  const reflector = app.get(Reflector)
 
   // 为每个 HTTP 路由路径注册一个前缀
   app.setGlobalPrefix(globalPrefix)
+
+  if (isDev) {
+    app.useGlobalInterceptors(new LoggingInterceptor())
+  }
+  app.useGlobalInterceptors(
+    new TimeoutInterceptor(),
+    new TransformInterceptor(reflector),
+  )
+
+  app.useGlobalFilters(
+    new AllExceptionsFilter(),
+  )
 
   await app.listen(
     port,
