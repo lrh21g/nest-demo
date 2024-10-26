@@ -7,13 +7,13 @@ import { ClsModule } from 'nestjs-cls'
 import { DataSource } from 'typeorm'
 
 import config from './config'
-import envValidation from './env.validation'
+import { ROOT_DIR } from './constants'
 import { AuthModule } from './modules/auth/auth.module'
 import { UserModule } from './modules/user/user.module'
 
 import './boilerplate.polyfill'
 
-const envFilePath = path.resolve(process.cwd(), `.env.${process.env.NODE_ENV || 'development'}`)
+const envFilePath = path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'development'}`)
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ const envFilePath = path.resolve(process.cwd(), `.env.${process.env.NODE_ENV || 
       // 加载环境变量文件的路径。
       envFilePath,
       // 用于验证环境变量的自定义函数。如果函数中出现异常，应用程序将无法启动。
-      validate: envValidation,
+      // validate: envValidation,
       // 加载的自定义配置文件数组。
       load: [...Object.values(config)],
     }),

@@ -1,6 +1,7 @@
 export * from './auth-strategy.constant'
 export * from './error-code.constant'
 export * from './order.constant'
+export * from './path.constant'
 export * from './response.constant'
 export * from './role-type.constant'
 export * from './token-type.constant'

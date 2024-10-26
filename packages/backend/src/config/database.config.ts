@@ -6,13 +6,14 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm'
 import dotenv from 'dotenv'
 import { DataSource, DataSourceOptions } from 'typeorm'
 
+import { ROOT_DIR } from '~/constants'
 import { env, envBoolean, envNumber } from '~/env'
 import { UserSubscriber } from '~/share/database/entity-subscribers/user-subscriber'
 
 import '~/boilerplate.polyfill'
 
 dotenv.config({
-  path: path.resolve(process.cwd(), `.env.${process.env.NODE_ENV || 'development'}`),
+  path: path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'development'}`),
 })
 
 export const dataSourceOptions = {
