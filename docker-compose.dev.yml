@@ -1,0 +1,110 @@
+# services : 服务由一组容器支持，由平台根据复制要求和放置约束运行。
+# 由于服务由容器支持，因此它们由 Docker 镜像和一组运行时参数定义。服务中的所有容器都是使用这些参数创建的。
+services:
+  # mysql : 服务
+  mysql:
+    # image : 镜像
+    image: mysql:8.4.3
+    # container_name : 容器名称。格式为 [a-zA-Z0-9][a-zA-Z0-9_.-]+
+    container_name: nest-demo-mysql
+    # restart : 定义平台在容器终止时应用的策略
+    # > no : 默认重启策略，在任何情况下都不会重新启动容器
+    # > always : 始终重启容器，直到将其删除
+    # > on-failure[:max-retries] : 在退出代码显示错误时，重启容器。可选择限制 Docker 守护进程尝试重启的次数
+    # > unless-stopped : 无论退出代码如何，策略都会重新启动容器，但在服务停止或删除时停止重新启动。
+    restart: always
+    # env_file 指定一个或多个包含要传递给容器的环境变量的文件
+    env_file:
+      - .env.development
+    # environment : 定义容器中设置的环境变量
+    # 如果同时为服务设置了 env_file 和 environment，则以 environment 设置的值优先。
+    environment:
+      - MYSQL_HOST=${DB_HOST}
+      - MYSQL_PORT=${DB_PORT}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USERNAME=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    # ports : 用于定义主机和容器之间的端口映射
+    ports:
+      - '${DB_PORT}:3306'
+    # command : 覆盖容器镜像（例如 Dockerfile 的 CMD）声明的默认命令
+    # > 如果值为 null，则使用镜像中的默认命令
+    # > 如果值为 [] （空列表）或 '' （空字符串），则忽略镜像声明的默认命令，即覆盖为空。
+    # mysqld : MySQL 数据库的守护进程（daemon），负责管理数据库的运行。它处理客户端的连接请求，执行 SQL 查询，管理数据存储、权限、安全性等。
+    # --character-set-server=utf8mb4 : 设置服务器的默认字符集为 utf8mb4，支持更全面的 Unicode 字符，包括表情符号。
+    # --collation-server=utf8mb4_general_ci : 设置服务器的默认排序规则为 utf8mb4_general_ci （不区分大小写的排序规则）。
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci # 设置utf8字符集
+    # volumes 挂载卷 : 定义了服务容器可访问的挂载主机路径或命名卷
+    volumes:
+      # 将主机的 ./__data/mysql/ 目录挂载到容器内的 /var/lib/mysql/，用于持久化 MySQL 数据。即使容器重启或删除，数据仍会保留在主机上。
+      - ./__data/mysql/:/var/lib/mysql/
+      # 将主机的 ./deploy/sql/ 目录挂载到容器的 /docker-entrypoint-initdb.d/，用于存放初始化脚本。
+      # 如果 ./__data/mysql/ 中已有数据，容器启动时不会执行该目录中的初始化脚本。
+      - ./deploy/sql/:/docker-entrypoint-initdb.d/
+    # networks : 定义了服务容器所连接的网络，并引用了 networks 顶层元素下的条目。
+    # 用于指定该服务的容器应连接到 nest_demo_net 网络。
+    networks:
+      - nest_demo_net
+
+  redis:
+    image: redis:7.4.1
+    container_name: nest-demo-redis
+    restart: always
+    env_file:
+      - .env.development
+    ports:
+      - '${REDIS_PORT}:6379'
+    # command : 覆盖容器镜像（例如 Dockerfile 的 CMD）声明的默认命令
+    # --requirepass : 指定 Redis 服务器的访问密码
+    command: >
+      --requirepass ${REDIS_PASSWORD}
+    networks:
+      - nest_demo_net
+
+  nest-demo-backend:
+    # build : 用于从源代码创建容器映像的构建配置。用于告知 Compose 如何从源代码开始（重新）构建应用程序，并以可移植的方式在 Compose 文件中定义构建过程。
+    build:
+      # context : 定义包含 Dockerfile 的目录的路径，或 git 存储库的 URL
+      context: .
+      # args : 定义构建参数，即 Dockerfile ARG 值。
+      args:
+        - NODE_ENV=${NODE_ENV}
+        - APP_PROJECT_DIR=${APP_PROJECT_DIR}
+        - APP_BACKEND_PORT=${APP_BACKEND_PORT}
+        - APP_FRONTEND_PORT=${APP_FRONTEND_PORT}
+        - DB_HOST=${DB_HOST}
+        - DB_PORT=${DB_PORT}
+    image: nest-demo-backend
+    container_name: nest-demo-backend
+    restart: always
+    env_file:
+      - .env.development
+    # environment:
+    #   - APP_PROJECT_DIR=nest-demo
+    # extra_hosts : 将主机名映射添加到容器网络接口配置中（Linux 为 /etc/hosts）。
+    extra_hosts:
+      # 容器可以使用 host.docker.internal 来访问宿主机上的服务，而无需知道宿主机的具体 IP 地址
+      # host.docker.internal 是一个特定的主机名，可以用来从 Docker 容器访问宿主机。
+      # host-gateway 是一个特殊的网关地址，Docker 会将其映射到宿主机的 IP 地址。
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '${APP_BACKEND_PORT}:${APP_BACKEND_PORT}'
+    volumes:
+      # ./logs 日志文件挂载到容器外部
+      - ./logs/:/logs/
+    # depends_on : 控制服务启动和关闭的顺序
+    # 在当前服务启动之前，先将 depends_on 指定的服务启动
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nest_demo_net
+
+# 网络可让服务相互通信。默认情况下，Compose 会为应用程序设置一个网络。
+# 服务的每个容器都会加入默认网络，该网络上的其他容器可以访问该网络，也可以通过服务名称发现该网络。
+# 顶层网络元素允许配置可在多个服务中重复使用的命名网络。要在多个服务中使用一个网络，你必须在服务顶层元素中使用网络属性，明确授予每个服务访问权限。
+networks:
+  nest_demo_net:
+    # name : 设置网络的自定义名称。名称字段可用于引用包含特殊字符的网络。名称按原样使用，不与项目名称一起使用。
+    name: nest_demo_net
