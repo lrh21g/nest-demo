@@ -1,5 +1,63 @@
 # nest-demo
 
+## 项目命令
+
+- docker 相关
+
+```bash
+# 指定的开发 Docker Compose 文件（docker-compose.dev.yml），使用开发环境的环境变量文件（.env.development） 启动 MySql 服务
+# > docker compose -f : 指定 Docker Compose 文件
+# > docker compose --env-file : 指定环境文件
+# > docker compose run : 运行一个一次性容器
+# > docker compose run -d : 在后台运行容器并打印容器 ID
+# > docker compose run --service-ports : 在启用所有服务端口并将其映射到主机的情况下运行命令
+$ docker compose -f docker-compose.dev.yml --env-file .env.development run -d --service-ports mysql
+
+# 指定的开发 Docker Compose 文件（docker-compose.dev.yml），使用开发环境的环境变量文件（.env.development） 启动 Redis 服务
+$ docker compose -f docker-compose.dev.yml --env-file .env.development run -d --service-ports redis
+
+# docker compose -f docker-compose.dev.yml --env-file .env.development up --build
+# 指定的开发 Docker Compose 文件（docker-compose.dev.yml），使用开发环境的环境变量文件（.env.development）构建并启动 Docker 容器
+# > docker compose -f : 指定 Docker Compose 文件
+# > docker compose --env-file : 指定环境文件
+# > docker compose up --build : 在启动之前重新构建镜像。
+$ pnpm run docker:start:dev
+
+# docker compose -f docker-compose.dev.yml --env-file .env.production up --build
+# 指定的开发 Docker Compose 文件（docker-compose.dev.yml），使用生产环境的环境变量文件（.env.production）构建并启动 Docker 容器
+$ pnpm run docker:start:prod
+
+# docker compose -f docker-compose.dev.yml --env-file .env.production up -d --no-build
+# 指定的开发 Docker Compose 文件（docker-compose.dev.yml），使用生产环境的环境变量文件启动容器，但不重新构建镜像，适用于已存在镜像的情况
+# > docker compose -f : 指定 Docker Compose 文件
+# > docker compose --env-file : 指定环境文件
+# > docker compose up -d : 使容器在后台运行
+# > docker compose up --no-build : 不重新构建镜像
+$ pnpm run docker:dev:up
+
+# docker compose -f docker-compose.prod.yml --env-file .env.production up -d --pull=always
+# 指定的生产 Docker Compose 文件（docker-compose.prod.yml），使用生产环境的环境变量文件启动容器
+# > docker compose -f : 指定 Docker Compose 文件
+# > docker compose --env-file : 指定环境文件
+# > docker compose up -d : 使容器在后台运行
+# > docker compose up --pull=always : 确保每次启动前都会拉取最新的基础镜像。可选项： always | missing | never
+$ pnpm run docker:prod:up
+
+# docker compose --env-file .env.production down
+# 使用生产环境的环境变量文件，停止并删除 Docker 容器和网络。适用于清理正在运行的服务
+# > docker compose --env-file : 指定环境文件
+# > docker compose down : 停止并移除容器、网络
+$ pnpm run docker:down
+
+# docker compose --env-file .env.production stop nest-demo-backend && docker container rm nest-demo-backend && docker rmi nest-demo-backend
+# 停止名为 nest-demo-backend 的容器，删除该容器，并删除与之相关的 Docker 镜像。适用于清理不再需要的资源。
+# > docker compose --env-file : 指定环境文件
+# > docker compose stop : 停止正在运行的容器，但不删除它们。可以通过 docker compose start 重新启动。
+# > docker container rm : 删除已停止的服务容器
+# > docker rmi : 删除镜像
+$ pnpm run docker:rmi
+```
+
 ## 目录结构
 
 ```plain
