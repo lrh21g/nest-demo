@@ -1,4 +1,4 @@
-import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
 import { AbstractDto } from './dtos/abstract.dto'
 
@@ -8,7 +8,7 @@ export abstract class AbstractEntity<
   DTO extends AbstractDto = AbstractDto,
   // 泛型参数，默认为 never，通常用于传递一些额外的选项。
   O = never,
-> {
+> extends BaseEntity {
   // 用于定义一个主键列，类型为 UUID（全局唯一标识符），数据库会自动生成该字段。
   @PrimaryGeneratedColumn('uuid')
   id!: Uuid
