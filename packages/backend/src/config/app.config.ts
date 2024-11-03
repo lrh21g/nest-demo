@@ -1,6 +1,6 @@
 import { ConfigType, registerAs } from '@nestjs/config'
 
-import { env, envNumber, envString } from '~/env'
+import { env, envBoolean, envNumber, envString } from '~/env'
 
 export const appRegToken = 'app'
 
@@ -12,6 +12,7 @@ export const AppConfig = registerAs(
     port: envNumber('APP_BACKEND_PORT', 3000),
     baseUrl: env('APP_BASE_URL'),
     globalPrefix,
+    multiDeviceLogin: envBoolean('APP_MULTI_DEVICE_LOGIN', true),
     logger: {
       level: env('APP_LOGGER_LEVEL'),
       maxSize: envString('APP_LOGGER_MAX_SIZE'),
@@ -21,3 +22,7 @@ export const AppConfig = registerAs(
 )
 
 export type IAppConfig = ConfigType<typeof AppConfig>
+
+export const routerWhiteList: string[] = [
+  `${globalPrefix ? '/' : ''}${globalPrefix}/auth/login`,
+]
