@@ -3,6 +3,18 @@ declare global {
   // 定义了一个名为 Uuid 的类型，表示一个字符串类型的 UUID（通用唯一标识符）。
   export type Uuid = string & { _uuidBrand: undefined }
 
+  interface IAuthUser {
+    userId: Uuid
+    // 密码版本
+    pv: number
+    // 过期时间
+    exp?: number
+    // 签发时间
+    iat?: number
+    // 用户角色
+    roles?: string
+  }
+
   // 定义了一个名为 IBaseResponse 的类型，表示一个基础返回数据结构
   export interface IBaseResponse<T = any> {
     message: string
