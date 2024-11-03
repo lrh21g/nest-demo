@@ -7,10 +7,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { Type } from '@nestjs/common/interfaces'
+import { IAuthGuard } from '@nestjs/passport'
 import { ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger'
 
 import { RoleType } from '~/constants'
-import { AuthGuard } from '../guards/auth.guard'
+import { JwtAuthGuard } from '../guards/jwt-auth.guard'
+import { PublicGuard } from '../guards/public.guard'
 import { RolesGuard } from '../guards/roles.guard'
 import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor'
 import { PublicRoute } from './public-route.decorator'
@@ -20,15 +22,26 @@ import { Roles } from './roles.decorator'
 export function Auth(
   roles: RoleType[] = [],
   options?: Partial<{ public: boolean }>,
-): MethodDecorator {
+) {
+  // ========== test ==========
+  // return applyDecorators(
+  //   UseGuards(AuthGuard),
+  // )
+
+  // ===========================
+
   const isPublicRoute = options?.public
+
+  const authGuardList: Type<IAuthGuard>[] = [JwtAuthGuard]
+  if (options?.public)
+    authGuardList.push(PublicGuard)
 
   // applyDecorators 用于聚合多个装饰器。
   return applyDecorators(
     // 用于标记该路由需要的角色。
     Roles(roles),
     // 使用守卫 AuthGuard 和 RolesGuard 进行身份验证和角色检查。其中，AuthGuard 的行为取决于 public 参数。
-    UseGuards(AuthGuard({ public: isPublicRoute }), RolesGuard),
+    UseGuards(...[...authGuardList, RolesGuard]),
     // 为 Swagger 文档生成 Bearer 认证信息。
     ApiBearerAuth(),
     // 使用拦截器 AuthUserInterceptor，用于拦截请求，获取经过认证的用户信息，并将其存储在一个全局的上下文中，方便后续处理中访问。
@@ -46,5 +59,12 @@ export function UUIDParam(
   ...pipes: Array<Type<PipeTransform> | PipeTransform>
 ): ParameterDecorator {
   // 通过 @Param 装饰器来处理指定的 property（URL 参数），并使用 ParseUUIDPipe 验证该参数是否是版本 4 的 UUID。如果需要，还可以附加其他管道处理参数。
-  return Param(property, new ParseUUIDPipe({ version: '4' }), ...pipes)
+  return Param(
+    property,
+    new ParseUUIDPipe({
+      version: '4',
+      exceptionFactory: () => 'Invalid UUID',
+    }),
+    ...pipes,
+  )
 }

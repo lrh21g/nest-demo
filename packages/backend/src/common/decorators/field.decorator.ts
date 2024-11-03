@@ -27,21 +27,21 @@ import {
 import {
   ApiEnumProperty,
   ApiUUIDProperty,
-} from './property.decorators'
+} from './property.decorator'
 import {
   PhoneNumberSerializer,
   ToArray,
   ToBoolean,
   ToLowerCase,
   ToUpperCase,
-} from './transform.decorators'
+} from './transform.decorator'
 import {
   IsNullable,
   IsPassword,
   IsPhoneNumber,
   IsTmpKey as IsTemporaryKey,
   IsUndefinable,
-} from './validator.decorators'
+} from './validator.decorator'
 
 interface IFieldOptions {
   each?: boolean // 是否对数组中的每个项进行验证
