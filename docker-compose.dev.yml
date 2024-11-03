@@ -39,7 +39,10 @@ services:
     volumes:
       # 将主机的 ./__data/mysql/ 目录挂载到容器内的 /var/lib/mysql/，用于持久化 MySQL 数据。即使容器重启或删除，数据仍会保留在主机上。
       - ./__data/mysql/:/var/lib/mysql/
-      # 将主机的 ./deploy/sql/ 目录挂载到容器的 /docker-entrypoint-initdb.d/，用于存放初始化脚本。
+      # 首次启动容器时，将创建一个具有指定名称的新数据库，并使用提供的配置变量进行初始化。
+      # 此外，它还会执行 /docker-entrypoint-initdb.d 中扩展名为 .sh、.sql 和 .sql.gz 的文件。文件将按字母顺序执行。
+      # 可以通过将 SQL 转储挂载到该目录，轻松填充你的 mysql 服务，并提供带有贡献数据的自定义镜像。 SQL 文件默认会导入到 MYSQL_DATABASE 变量指定的数据库中。
+      # 此处，将主机的 ./deploy/sql/ 目录挂载到容器的 /docker-entrypoint-initdb.d/，用于存放初始化脚本。
       # 如果 ./__data/mysql/ 中已有数据，容器启动时不会执行该目录中的初始化脚本。
       - ./deploy/sql/:/docker-entrypoint-initdb.d/
     # networks : 定义了服务容器所连接的网络，并引用了 networks 顶层元素下的条目。
@@ -55,6 +58,8 @@ services:
       - .env.development
     ports:
       - '${REDIS_PORT}:6379'
+    volumes:
+      - ./__data/redis/:/data/
     # command : 覆盖容器镜像（例如 Dockerfile 的 CMD）声明的默认命令
     # --requirepass : 指定 Redis 服务器的访问密码
     command: >
