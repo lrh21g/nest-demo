@@ -2,15 +2,20 @@ import path from 'node:path'
 import process from 'node:process'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ClsModule } from 'nestjs-cls'
-import { DataSource } from 'typeorm'
 
+import { DataSource } from 'typeorm'
+import { AllExceptionsFilter } from './common/filters/any-exception.filter'
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard'
+import { TimeoutInterceptor, TransformInterceptor } from './common/interceptors'
 import config from './config'
+
 import { ROOT_DIR } from './constants'
 import { AuthModule } from './modules/auth/auth.module'
 import { UserModule } from './modules/user/user.module'
-
+import { RedisModule } from './share/redis/redis.module'
 import './boilerplate.polyfill'
 
 const envFilePath = path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'development'}`)
@@ -53,10 +58,18 @@ const envFilePath = path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'deve
         mount: true, // 是否将中间件加载到每个路由
       },
     }),
-    AuthModule,
+    RedisModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+
+    { provide: APP_INTERCEPTOR, useFactory: () => new TimeoutInterceptor(15 * 1000) },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}
