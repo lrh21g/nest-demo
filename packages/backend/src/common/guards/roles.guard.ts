@@ -1,8 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { RoleType } from '~/constants'
 
+import { RoleType } from '~/constants'
 import { UserEntity } from '~/modules/user/user.entity'
+import { ROLES_KEY } from '../decorators'
 
 // 自定义 RolesGuard （角色权限守卫），用于进行基于角色控制访问权限。
 // RolesGuard 会检查路由处理程序是否要求特定角色，如果有，则确保当前请求的用户角色符合要求。如果路由没有设置任何角色限制，则请求默认通过。
@@ -18,7 +19,7 @@ export class RolesGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     // 从当前处理请求的方法上获取使用 @Roles 装饰器指定的角色列表。
     const roles = this.reflector.get<RoleType[] | undefined>(
-      'roles', // 获取的元数据名称
+      ROLES_KEY, // 获取的元数据名称
       context.getHandler(), // 返回当前请求所调用的处理程序（即控制器中的某个方法）。元数据通常是定义在控制器方法上，表示该方法需要特定的角色才能访问。
     )
 
@@ -34,6 +35,6 @@ export class RolesGuard implements CanActivate {
     const user = request.user
 
     // 如果 roles 数组包含 user.role，则返回 true，表示该用户有权限访问该路由。否则返回 false，拒绝访问。
-    return roles.includes(user.role)
+    return roles.includes(user?.role)
   }
 }
