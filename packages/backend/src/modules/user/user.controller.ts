@@ -1,9 +1,8 @@
 import { Controller, Get, HttpCode, HttpStatus, Query, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
-import { Auth, UUIDParam } from '~/common/decorators'
+import { UUIDParam } from '~/common/decorators'
 import { PageDto } from '~/common/dtos/page.dto'
-import { RoleType } from '~/constants'
 import { UserDto } from './dtos/user.dto'
 import { UsersPageOptionsDto } from './dtos/user-page-options.dto'
 import { UserService } from './user.service'
@@ -16,7 +15,7 @@ export class UserController {
   ) {}
 
   @Get()
-  @Auth([RoleType.USER])
+  // @Auth([RoleType.USER, RoleType.ADMIN], { public: true })
   @HttpCode(HttpStatus.OK)
   getUsers(
     // ValidationPipe 使用了 class-validator 包及其声明性验证装饰器。
@@ -27,7 +26,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @Auth([RoleType.USER])
+  // @Auth([RoleType.USER])
   @HttpCode(HttpStatus.OK)
   getUser(
     @UUIDParam('id') userId: Uuid,
