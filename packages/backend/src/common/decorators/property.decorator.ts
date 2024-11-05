@@ -13,7 +13,7 @@ export function ApiUUIDProperty(
     type: options.each ? [String] : String, // 根据是否为数组，决定是单个 UUID 还是数组
     format: 'uuid', // 设置字段的格式为 UUID
     isArray: options.each, // 根据传入的 each 值，设置 isArray
-    ...options, // 合并其他传入的选项
+    ...options as ApiPropertyOptions, // 合并其他传入的选项
   })
 }
 
@@ -27,11 +27,11 @@ export function ApiEnumProperty<TEnum>(
   const enumValue = getEnum() as any
 
   return ApiProperty({
-    type: 'enum', // 设置字段的格式为 uuid
+    type: 'string', // 设置字段的格式为 uuid
     // throw error during the compilation of swagger
     // isArray: options.each,
     enum: enumValue, // 将枚举值传递给 Swagger
     enumName: getVariableName(getEnum), // 提取枚举的名称并应用于 Swagger
-    ...options, // 合并其他传入的选项
+    ...options as ApiPropertyOptions, // 合并其他传入的选项
   })
 }

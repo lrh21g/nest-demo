@@ -1,6 +1,6 @@
 import { BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
-import { AbstractDto } from './dtos/abstract.dto'
+import { AbstractDto } from '../dtos/abstract.dto'
 
 // AbstractEntity 类，用于在基于 TypeORM 和 NestJS 的项目中提供实体的通用特性，如 ID、创建时间和更新时间，并支持将实体转换为数据传输对象 (DTO)。
 export abstract class AbstractEntity<

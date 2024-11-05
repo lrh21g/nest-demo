@@ -49,6 +49,7 @@ lerna-debug.log*
 
 # temp data
 __data
+packages/backend/documentation
 
 # Runtime data
 pids

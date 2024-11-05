@@ -9,6 +9,7 @@ import { AppModule } from './app.module'
 import { LoggingInterceptor } from './common/interceptors'
 import { ConfigKeyPaths } from './config'
 import { isDev, isMainProcess } from './env'
+import { setupSwagger } from './setup-swagger'
 import { LoggerService } from './share/logger/logger.service'
 
 async function bootstrap(): Promise<NestExpressApplication> {
@@ -35,6 +36,8 @@ async function bootstrap(): Promise<NestExpressApplication> {
   if (isDev) {
     app.useGlobalInterceptors(new LoggingInterceptor())
   }
+
+  setupSwagger(app, configService)
 
   await app.listen(
     port,

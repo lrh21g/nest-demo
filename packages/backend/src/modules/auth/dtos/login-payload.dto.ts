@@ -3,10 +3,10 @@ import { UserDto } from '../../user/dtos/user.dto'
 import { TokenPayloadDto } from './token-payload.dto'
 
 export class LoginPayloadDto {
-  @ClassField(() => UserDto)
+  @ClassField(() => UserDto, { description: '用户信息' })
   user: UserDto
 
-  @ClassField(() => TokenPayloadDto)
+  @ClassField(() => TokenPayloadDto, { description: 'token 信息' })
   token: TokenPayloadDto
 
   constructor(user: UserDto, token: TokenPayloadDto) {

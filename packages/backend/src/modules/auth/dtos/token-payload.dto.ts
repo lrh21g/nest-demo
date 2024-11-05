@@ -1,10 +1,10 @@
 import { NumberField, StringField } from '~/common/decorators'
 
 export class TokenPayloadDto {
-  @NumberField()
+  @NumberField({ description: '过期时间' })
   expiresIn: number
 
-  @StringField()
+  @StringField({ description: 'accessToken' })
   accessToken: string
 
   constructor(data: { expiresIn: number, accessToken: string }) {

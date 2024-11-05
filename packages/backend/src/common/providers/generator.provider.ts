@@ -4,7 +4,7 @@ import { v1 as uuid } from 'uuid'
 export class GeneratorProvider {
   // 使用了 uuid 库的 v1 方法来生成 UUID（Universally Unique Identifier），这是一个基于时间的唯一标识符。
   static uuid(): string {
-    return uuid
+    return uuid()
   }
 
   // 用于生成一个 4 位数的验证码

@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, Relation } from 'typeorm'
 
-import { AbstractEntity } from '~/common/abstract.entity'
 import { UseDto } from '~/common/decorators'
+import { AbstractEntity } from '~/common/entity/abstract.entity'
 import { RoleType } from '~/constants'
 import { AccessTokenEntity } from '../auth/entities/access-token.entity'
 import { UserDto, UserDtoOptions } from './dtos/user.dto'

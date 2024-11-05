@@ -1,5 +1,5 @@
-import type { PageOptionsDto } from './page-options.dto'
 import { BooleanField, NumberField } from '../decorators'
+import { PageOptionsDto } from './page-options.dto'
 
 interface IPageMetaDtoParameters {
   pageOptionsDto: PageOptionsDto
@@ -7,22 +7,22 @@ interface IPageMetaDtoParameters {
 }
 
 export class PageMetaDto {
-  @NumberField()
+  @NumberField({ description: '页数' })
   readonly page: number
 
-  @NumberField()
+  @NumberField({ description: '每页数量' })
   readonly pageNum: number
 
-  @NumberField()
+  @NumberField({ description: '总数量' })
   readonly itemCount: number
 
-  @NumberField()
+  @NumberField({ description: '总页数' })
   readonly pageCount: number
 
-  @BooleanField()
+  @BooleanField({ description: '是否有上一页' })
   readonly hasPreviousPage: boolean
 
-  @BooleanField()
+  @BooleanField({ description: '是否有下一页' })
   readonly hasNextPage: boolean
 
   constructor({ pageOptionsDto, itemCount }: IPageMetaDtoParameters) {

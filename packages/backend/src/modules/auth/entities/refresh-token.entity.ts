@@ -6,7 +6,7 @@ import {
   Relation,
 } from 'typeorm'
 
-import { AbstractEntity } from '~/common/abstract.entity'
+import { AbstractEntity } from '~/common/entity/abstract.entity'
 import { AccessTokenEntity } from './access-token.entity'
 
 @Entity('user_refresh_tokens')

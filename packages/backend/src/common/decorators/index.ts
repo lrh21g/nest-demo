@@ -1,3 +1,4 @@
+export * from './api-result.decorator'
 export * from './auth-user.decorator'
 export * from './bypass.decorator'
 export * from './field.decorator'

@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { IAuthConfig } from '~/config'
 import { UserModule } from '../user/user.module'
+import AccountController from './account.controller'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { AccessTokenEntity } from './entities/access-token.entity'
@@ -50,7 +51,7 @@ const strategies = [JwtStrategy, PublicStrategy]
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AccountController],
   providers: [...providers, ...strategies],
   exports: [TypeOrmModule, JwtModule, ...providers],
 })

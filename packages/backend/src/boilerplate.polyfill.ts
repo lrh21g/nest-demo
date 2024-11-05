@@ -1,11 +1,11 @@
 import { compact, map } from 'lodash'
 import { Brackets, SelectQueryBuilder } from 'typeorm'
-import { AbstractEntity } from './common/abstract.entity'
-
 import { AbstractDto } from './common/dtos/abstract.dto'
+
 import { PageDto } from './common/dtos/page.dto'
 import { PageMetaDto } from './common/dtos/page-meta.dto'
 import { PageOptionsDto } from './common/dtos/page-options.dto'
+import { AbstractEntity } from './common/entity/abstract.entity'
 
 import 'source-map-support/register'
 

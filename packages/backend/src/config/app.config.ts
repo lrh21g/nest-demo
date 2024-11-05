@@ -8,6 +8,7 @@ const globalPrefix = env('GLOBAL_PREFIX', 'api')
 export const AppConfig = registerAs(
   appRegToken,
   () => ({
+    name: env('APP_BACKEND_NAME'),
     host: env('APP_BACKEND_HOST', 'localhost'),
     port: envNumber('APP_BACKEND_PORT', 3000),
     baseUrl: env('APP_BASE_URL'),

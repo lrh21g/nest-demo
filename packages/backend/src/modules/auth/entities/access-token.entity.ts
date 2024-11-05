@@ -7,7 +7,7 @@ import {
   Relation,
 } from 'typeorm'
 
-import { AbstractEntity } from '~/common/abstract.entity'
+import { AbstractEntity } from '~/common/entity/abstract.entity'
 import { UserEntity } from '~/modules/user/user.entity'
 import { RefreshTokenEntity } from './refresh-token.entity'
 

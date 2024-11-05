@@ -9,12 +9,14 @@ import {
 export class PageOptionsDto {
   // 排序
   @EnumFieldOptional(() => Order, {
+    description: '排序',
     default: Order.ASC,
   })
   readonly order: Order = Order.ASC
 
   // 页数
   @NumberFieldOptional({
+    description: '页数',
     minimum: 1,
     default: 1,
     int: true,
@@ -23,6 +25,7 @@ export class PageOptionsDto {
 
   // 每页数量
   @NumberFieldOptional({
+    description: '每页数量',
     minimum: 1,
     maximum: 50,
     default: 10,

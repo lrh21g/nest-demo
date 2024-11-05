@@ -5,9 +5,9 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common'
-import { ApiOkResponse } from '@nestjs/swagger'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
-import { Auth } from '~/common/decorators'
+import { ApiResult, Auth } from '~/common/decorators'
 import { RoleType } from '~/constants'
 import { UserDto } from '../user/dtos/user.dto'
 
@@ -17,8 +17,9 @@ import { LoginPayloadDto } from './dtos/login-payload.dto'
 import { UserLoginDto } from './dtos/user-login.dto'
 import { UserRegisterDto } from './dtos/user-register.dto'
 
-@Controller('auth')
+@ApiTags('Auth - 认证模块')
 @Auth([RoleType.USER, RoleType.ADMIN], { public: true })
+@Controller('auth')
 export class AuthController {
   constructor(
     private userService: UserService,
@@ -26,8 +27,9 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiOperation({ summary: '注册' })
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: UserDto, description: 'Successfully Registered' })
+  @ApiResult({ type: UserDto })
   async userRegister(
     @Body() userRegisterDto: UserRegisterDto,
   ): Promise<UserDto> {
@@ -39,11 +41,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: '登录' })
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({
-    type: LoginPayloadDto,
-    description: 'User info with access token',
-  })
+  @ApiResult({ type: LoginPayloadDto })
   async userLogin(
     @Body() userLoginDto: UserLoginDto,
   ): Promise<LoginPayloadDto> {
