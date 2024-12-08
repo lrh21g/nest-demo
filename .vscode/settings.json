@@ -55,12 +55,15 @@
 
   "cSpell.words": [
     "antfu",
+    "Cacheable",
     "commitlint",
     "dprint",
     "dtos",
     "Gitee",
     "iconfont",
     "iife",
+    "Keyv",
+    "liaoliaots",
     "libphonenumber",
     "nestjs",
     "npminstall",
@@ -69,7 +72,10 @@
     "Pinia",
     "RDBMS",
     "stylelint",
+    "subpub",
+    "tinyint",
     "typeorm",
+    "Uids",
     "unplugin",
     "Vant",
     "Vite"
