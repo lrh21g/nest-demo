@@ -13,10 +13,10 @@ import { RefreshTokenEntity } from './refresh-token.entity'
 
 @Entity('user_access_tokens')
 export class AccessTokenEntity extends AbstractEntity {
-  @Column({ length: 800 })
+  @Column({ length: 800, comment: 'access_token 值' })
   value!: string
 
-  @Column()
+  @Column({ comment: '令牌过期时间' })
   expiredAt!: Date
 
   // @OneToOne 用于定义一对一的关系.它表示当前实体与另一个实体（此处为 RefreshTokenEntity）之间存在一对一的关联。

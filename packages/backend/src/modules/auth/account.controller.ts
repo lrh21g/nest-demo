@@ -1,15 +1,13 @@
 import { Controller, Get, Req } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
-
 import { Request } from 'express'
-import { Auth, AuthUser } from '~/common/decorators'
-import { RoleType } from '~/constants'
+
+import { AuthUser } from '~/common/decorators'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
 
 @ApiTags('Account - 用户账户模块')
 @Controller('account')
-@Auth([RoleType.USER])
 export default class AccountController {
   constructor(
     private userService: UserService,

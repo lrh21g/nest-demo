@@ -1,34 +1,45 @@
+import { IntersectionType, PartialType } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
 import {
-  BooleanFieldOptional,
-  EmailFieldOptional,
+  EmailField,
+  EnumFieldOptional,
+  PasswordField,
   PhoneFieldOptional,
   StringFieldOptional,
+  UsernameField,
 } from '~/common/decorators'
-import { AbstractDto } from '~/common/dtos/abstract.dto'
-import { UserEntity } from '../user.entity'
+import { PageOptionsDto } from '~/helper/paginate/page-options.dto'
+import { UserStatusEnum } from '../user.constant'
 
-// TODO, remove this class and use constructor's second argument's type
-export type UserDtoOptions = Partial<{ isActive: boolean }>
+export class UserDto {
+  // @IsUnique({ entity: UserEntity, message: '用户名已存在' })
+  @UsernameField({ description: '用户名' })
+  username: string
 
-export class UserDto extends AbstractDto {
-  @StringFieldOptional({ nullable: true, description: '用户名' })
-  username!: string
+  @PasswordField({ description: '密码' })
+  password: string
 
-  @EmailFieldOptional({ nullable: true, description: 'Email 邮箱' })
-  email?: string | null
+  @StringFieldOptional({ each: true, description: '用户角色' })
+  roleIds: Uuid[]
 
-  @PhoneFieldOptional({ nullable: true, description: '手机号码' })
+  @StringFieldOptional({ description: '昵称' })
+  nickname: string
+
+  // @IsUnique({ entity: UserEntity, message: '邮箱已存在' })
+  @EmailField({ description: 'Email 邮箱' })
+  email: string | null
+
+  @PhoneFieldOptional({ description: '手机号码' })
   phone?: string | null
 
-  @BooleanFieldOptional({ description: '是否激活' })
-  isActive?: boolean
+  @StringFieldOptional({ description: '备注' })
+  remark?: string
 
-  constructor(user: UserEntity, options?: UserDtoOptions) {
-    super(user)
-
-    this.username = user.username
-    this.email = user.email
-    this.phone = user.phone
-    this.isActive = options?.isActive
-  }
+  @Transform(({ value }) => value || UserStatusEnum.ENABLE)
+  @EnumFieldOptional(() => UserStatusEnum, { description: '状态' })
+  status: UserStatusEnum
 }
+
+export class UserUpdateDto extends PartialType(UserDto) {}
+
+export class UserQueryDto extends IntersectionType(PartialType(UserDto), PageOptionsDto) {}

@@ -11,10 +11,10 @@ import { AccessTokenEntity } from './access-token.entity'
 
 @Entity('user_refresh_tokens')
 export class RefreshTokenEntity extends AbstractEntity {
-  @Column({ length: 800 })
+  @Column({ length: 800, comment: 'refresh_token 值' })
   value!: string
 
-  @Column()
+  @Column({ comment: '令牌过期时间' })
   expiredAt!: Date
 
   @OneToOne(

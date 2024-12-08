@@ -5,7 +5,6 @@ import Redis from 'ioredis'
 
 import { InjectRedis } from '~/common/decorators'
 import { AuthConfig, IAuthConfig } from '~/config'
-import { RoleType } from '~/constants'
 import { generateUUID, genOnlineUserKey } from '~/utils'
 import { UserEntity } from '../user/user.entity'
 import { UserService } from '../user/user.service'
@@ -28,9 +27,9 @@ export class TokenService {
     return jwtSign
   }
 
-  async generateAccessToken(userId: Uuid, roles: RoleType) {
+  async generateAccessToken(uid: Uuid, roles: string[] = []) {
     const payload: IAuthUser = {
-      userId,
+      uid,
       pv: 1,
       roles,
     }
@@ -39,7 +38,7 @@ export class TokenService {
 
     const accessToken = new AccessTokenEntity()
     accessToken.value = jwtSign
-    accessToken.user = { id: userId } as UserEntity
+    accessToken.user = { id: uid } as UserEntity
     accessToken.expiredAt = dayjs()
       .add(this.authConfig.expirationTime, 'second')
       .toDate()
@@ -57,12 +56,12 @@ export class TokenService {
     accessToken: AccessTokenEntity,
     now: dayjs.Dayjs,
   ): Promise<string> {
-    const refreshTokenPayload = {
+    const refreshTokenResponse = {
       uuid: generateUUID(),
     }
 
     const refreshTokenSign = await this.jwtService.signAsync(
-      refreshTokenPayload,
+      refreshTokenResponse,
       {
         expiresIn: this.authConfig.refreshExpirationTime,
       },

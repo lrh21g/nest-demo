@@ -1,24 +1,26 @@
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
-import { ApiResult, Auth } from '~/common/decorators'
-import { RoleType } from '~/constants'
-import { UserDto } from '../user/dtos/user.dto'
-
+import { ApiResult, Public } from '~/common/decorators'
+import { PublicGuard } from '~/common/guards/public.guard'
+import { UserEntity } from '../user/user.entity'
 import { UserService } from '../user/user.service'
 import { AuthService } from './auth.service'
-import { LoginPayloadDto } from './dtos/login-payload.dto'
+import { LoginResponse, LoginResponseDto } from './dtos/login-response'
 import { UserLoginDto } from './dtos/user-login.dto'
 import { UserRegisterDto } from './dtos/user-register.dto'
 
 @ApiTags('Auth - 认证模块')
-@Auth([RoleType.USER, RoleType.ADMIN], { public: true })
+@UseGuards(PublicGuard)
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -29,24 +31,23 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: '注册' })
   @HttpCode(HttpStatus.OK)
-  @ApiResult({ type: UserDto })
+  @ApiResult({ type: UserEntity })
   async userRegister(
     @Body() userRegisterDto: UserRegisterDto,
-  ): Promise<UserDto> {
-    const createUser = await this.userService.register(userRegisterDto)
+  ): Promise<UserEntity> {
+    const user = await this.userService.register(userRegisterDto)
 
-    return createUser.toDto({
-      isActive: true,
-    })
+    return user
   }
 
   @Post('login')
   @ApiOperation({ summary: '登录' })
   @HttpCode(HttpStatus.OK)
-  @ApiResult({ type: LoginPayloadDto })
+  @ApiResult({ type: LoginResponseDto })
   async userLogin(
     @Body() userLoginDto: UserLoginDto,
-  ): Promise<LoginPayloadDto> {
+    @Headers('user-agent') _ua: string,
+  ): Promise<LoginResponse> {
     return await this.authService.login(userLoginDto)
   }
 }

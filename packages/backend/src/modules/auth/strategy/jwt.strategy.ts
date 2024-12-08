@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { AuthStrategy, RoleType, TokenType } from '~/constants'
+import { BusinessException } from '~/common/exceptions'
 
+import { AuthStrategy, ErrorEnum } from '~/constants'
 import { UserService } from '../../user/user.service'
 
 // JwtStrategy （Passport JWT 策略） ： 通过扩展 PassportStrategy 类来配置 Passport 策略
@@ -26,24 +27,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthStrategy.JWT) {
 
   // 对于 jwt-strategy，Passport 首先验证 JWT 的签名并解码 JSON。然后调用 validate() 方法，将解码的 JSON 作为其单个参数传递。
   // 基于 JWT 签名的工作方式，我们保证正在接收一个我们以前签名并发放给有效用户的有效令牌。
-  async validate(args: {
-    userId: Uuid
-    role: RoleType
-    type: TokenType
-  }) {
-    if (args.type !== TokenType.ACCESS_TOKEN) {
-      throw new UnauthorizedException()
-    }
-
+  async validate(payload: IAuthUser) {
     const user = await this.userService.findOne({
-      id: args.userId as never,
-      role: args.role,
+      id: payload.uid,
     })
+    // const user = await this.userService.getUser(args.uid)
 
     if (!user) {
-      throw new UnauthorizedException()
+      throw new BusinessException(ErrorEnum.USER_NOT_FOUND)
     }
 
-    return user
+    return payload
   }
 }

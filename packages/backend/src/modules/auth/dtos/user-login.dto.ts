@@ -1,9 +1,9 @@
-import { EmailField, StringField } from '~/common/decorators'
+import { PasswordField, UsernameField } from '~/common/decorators'
 
 export class UserLoginDto {
-  @EmailField({ description: 'Email 邮箱' })
-  readonly email!: string
+  @UsernameField({ description: '用户名' })
+  readonly username!: string
 
-  @StringField({ description: '密码' })
+  @PasswordField({ description: '密码' })
   readonly password!: string
 }

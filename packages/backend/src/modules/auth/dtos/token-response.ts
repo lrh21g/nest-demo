@@ -1,6 +1,6 @@
 import { NumberField, StringField } from '~/common/decorators'
 
-export class TokenPayloadDto {
+export class TokenResponse {
   @NumberField({ description: '过期时间' })
   expiresIn: number
 
