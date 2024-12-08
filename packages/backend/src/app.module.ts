@@ -1,20 +1,21 @@
 import path from 'node:path'
 import process from 'node:process'
-import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ClassSerializerInterceptor, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 
-import { DataSource } from 'typeorm'
 import { AllExceptionsFilter } from './common/filters/any-exception.filter'
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard'
+import { RbacGuard } from './common/guards/rbac.guard'
 import { TimeoutInterceptor, TransformInterceptor } from './common/interceptors'
 import config from './config'
-
 import { ROOT_DIR } from './constants'
 import { AuthModule } from './modules/auth/auth.module'
+import { RoleModule } from './modules/role/role.module'
 import { UserModule } from './modules/user/user.module'
+import { DatabaseModule } from './share/database/database.module'
 import { RedisModule } from './share/redis/redis.module'
 import './boilerplate.polyfill'
 
@@ -35,21 +36,6 @@ const envFilePath = path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'deve
       // 加载的自定义配置文件数组。
       load: [...Object.values(config)],
     }),
-    // 使用 forRootAsync 允许在模块初始化时执行异步操作，如从数据库或其他外部服务加载配置信息。
-    TypeOrmModule.forRootAsync({
-      // useFactory 为工厂函数，允许动态创建提供程序。此处用于生成数据库的配置对象。
-      useFactory: (configService: ConfigService) => {
-        return configService.get('database')
-      },
-      // inject 为依赖注入。此处为将 ConfigService 将被注入到 useFactory 中，以便访问配置数据。
-      inject: [ConfigService],
-      // dataSourceFactory 用于处理 TypeORM 数据源的实例化。接收由 useFactory 返回的 options （从 ConfigService 获取的数据库配置选项）。
-      dataSourceFactory: async (options) => {
-        // 通过 new DataSource(options) 创建一个新的 TypeORM 数据源实例，调用 .initialize() 方法来异步初始化连接。
-        const dataSource = await new DataSource(options)
-        return dataSource.initialize()
-      },
-    }),
     // 使用 nestjs-cls ClsModule 配置 NestJS 项目中的上下文状态管理
     ClsModule.forRoot({
       global: true,
@@ -57,19 +43,33 @@ const envFilePath = path.resolve(ROOT_DIR, `.env.${process.env.NODE_ENV || 'deve
       middleware: {
         mount: true, // 是否将中间件加载到每个路由
       },
+      interceptor: {
+        mount: true,
+        setup: (cls, context) => {
+          const request = context.switchToHttp().getRequest<Request<{ query: { uid?: string } }>>()
+          if (request.query?.uid && request.body) {
+            // 供自定义参数验证器(UniqueConstraint)使用
+            cls.set('operateId', request.query.uid)
+          }
+        },
+      },
     }),
+    DatabaseModule,
     RedisModule,
     UserModule,
     AuthModule,
+    RoleModule,
   ],
   controllers: [],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
 
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
     { provide: APP_INTERCEPTOR, useFactory: () => new TimeoutInterceptor(15 * 1000) },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
 
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RbacGuard },
   ],
 })
 export class AppModule {}

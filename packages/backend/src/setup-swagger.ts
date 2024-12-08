@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 import { API_SECURITY_AUTH } from './common/decorators/swagger.decorator'
-import { PageDto } from './common/dtos/page.dto'
 import { ConfigKeyPaths, IAppConfig, ISwaggerConfig } from './config'
 
 export function setupSwagger(
@@ -38,7 +37,7 @@ export function setupSwagger(
     documentBuilder.build(),
     {
       ignoreGlobalPrefix: false,
-      extraModels: [PageDto],
+      extraModels: [],
     },
   )
 
