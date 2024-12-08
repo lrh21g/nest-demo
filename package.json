@@ -2,6 +2,7 @@
   "name": "nest-demo",
   "type": "module",
   "version": "1.0.0",
+  "packageManager": "pnpm@8.12.1+sha1.aa961ffce9b6eaa56307d9b5ff7e984f25b7eb58",
   "scripts": {
     "prepare": "husky install",
     "lint": "eslint .",

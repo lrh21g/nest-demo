@@ -26,6 +26,10 @@ export default antfu(
     files: ['**/*.ts'],
     rules: {
       'ts/consistent-type-imports': 'off',
+      // '@typescript-eslint/consistent-type-imports': [
+      //   'error',
+      //   { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+      // ],
     },
   },
 )
