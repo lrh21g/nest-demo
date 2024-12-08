@@ -9,6 +9,7 @@ import { DataSource, DataSourceOptions } from 'typeorm'
 import { ROOT_DIR } from '~/constants'
 import { env, envBoolean, envNumber } from '~/env'
 import { UserSubscriber } from '~/share/database/entity-subscribers/user-subscriber'
+import { SnakeNamingStrategy } from '~/share/database/strategy/snake-naming.strategy'
 
 import '~/boilerplate.polyfill'
 
@@ -23,6 +24,8 @@ export const dataSourceOptions = {
   username: env('DB_USERNAME'), // 数据库用户名
   password: env('DB_PASSWORD'), // 数据库密码
   database: env('DB_DATABASE'), // 数据库名称
+  // logging: env('DB_LOGGING'),
+  namingStrategy: new SnakeNamingStrategy(), // 数据库中的表和列的命名策略
 
   // 是否在每次应用程序启动时自动创建数据库模式
   // TODO : 请谨慎使用此选项，不要在生产环境中使用，否则您可能会丢失生产数据。在调试和开发过程中，此选项非常有用。
