@@ -1,4 +1,4 @@
-import { Order } from '~/constants'
+import { OrderEnum } from '~/constants'
 import {
   EnumFieldOptional,
   NumberFieldOptional,
@@ -8,11 +8,11 @@ import {
 // PageOptionsDto 为数据传输对象（DTO）抽象类，用于处理分页请求的选项
 export class PageOptionsDto {
   // 排序
-  @EnumFieldOptional(() => Order, {
+  @EnumFieldOptional(() => OrderEnum, {
     description: '排序',
-    default: Order.ASC,
+    default: OrderEnum.ASC,
   })
-  readonly order: Order = Order.ASC
+  readonly order: OrderEnum = OrderEnum.ASC
 
   // 页数
   @NumberFieldOptional({

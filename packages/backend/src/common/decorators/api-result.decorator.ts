@@ -63,8 +63,6 @@ export function ApiResult<TModel extends Type<any>>({
   return applyDecorators(
     ApiExtraModels(model),
     ApiExtraModels(ResOp),
-    // ApiExtraModels(PageDto),
-    // ApiExtraModels(PageMetaDto),
     (
       target: object,
       key: string | symbol,

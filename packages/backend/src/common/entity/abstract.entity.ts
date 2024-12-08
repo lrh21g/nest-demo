@@ -1,38 +1,47 @@
-import { BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger'
 
-import { AbstractDto } from '../dtos/abstract.dto'
+import { Exclude } from 'class-transformer'
+import { BaseEntity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn, VirtualColumn } from 'typeorm'
 
 // AbstractEntity 类，用于在基于 TypeORM 和 NestJS 的项目中提供实体的通用特性，如 ID、创建时间和更新时间，并支持将实体转换为数据传输对象 (DTO)。
-export abstract class AbstractEntity<
-  // 继承自 AbstractDto 的 DTO 类型，默认为 AbstractDto （ DTO（数据传输对象）的抽象类，定义了实体转换为 DTO 的基础结构。 ）
-  DTO extends AbstractDto = AbstractDto,
-  // 泛型参数，默认为 never，通常用于传递一些额外的选项。
-  O = never,
-> extends BaseEntity {
+export abstract class AbstractEntity extends BaseEntity {
   // 用于定义一个主键列，类型为 UUID（全局唯一标识符），数据库会自动生成该字段。
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { comment: 'UUID' })
   id!: Uuid
 
+  @Exclude()
   // 用于定义创建时间列，每次插入新记录时，该字段会自动设置为当前时间。
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   createdAt!: Date
 
+  @Exclude()
   // 用于定义更新时间列，每次更新记录时，该字段会自动更新为当前时间。
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   updatedAt!: Date
+}
 
-  // 将实体转换为 DTO 的方法，使用实体类的 dtoClass 来实例化一个 DTO。
-  toDto(options?: O): DTO {
-    // 获取当前实体类的 dtoClass，是在类中定义的一个属性，用来指定对应的 DTO 类。
-    const DtoClass = this.constructor.prototype.dtoClass
+export abstract class CompleteEntity extends AbstractEntity {
+  @ApiHideProperty()
+  @Exclude()
+  // update 设置为 false，表示该字段不会在更新操作时被更新，只有在第一次插入时会被设置，只用于记录创建者。
+  // nullable 设置为 true，表示该字段可以为 null。
+  @Column({ type: 'uuid', update: false, comment: '创建者', nullable: true })
+  createBy: Uuid
 
-    if (!DtoClass) {
-      throw new Error(
-        `You need to use @UseDto on class (${this.constructor.name}) be able to call toDto function`,
-      )
-    }
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'uuid', comment: '更新者', nullable: true })
+  updateBy: Uuid
 
-    // 如果 DtoClass 存在，则调用 DTO 类的构造函数，传入当前实体实例 (this) 和可选的 options，将实体转换为对应的 DTO 实例并返回。
-    return new DtoClass(this, options)
-  }
+  /**
+   * 不会保存到数据库中的虚拟列，数据量大时可能会有性能问题，有性能要求请考虑在 service 层手动实现
+   * @see https://typeorm.io/decorator-reference#virtualcolumn
+   */
+  @ApiProperty({ description: '创建者' })
+  @VirtualColumn({ query: alias => `SELECT username FROM user WHERE id = ${alias}.createBy` })
+  creator: string
+
+  @ApiProperty({ description: '更新者' })
+  @VirtualColumn({ query: alias => `SELECT username FROM user WHERE id = ${alias}.updateBy` })
+  updater: string
 }

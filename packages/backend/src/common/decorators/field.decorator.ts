@@ -7,11 +7,11 @@ import {
 import { Type } from 'class-transformer'
 import {
   IsBoolean, // 检数值是否为 Boolean
-  IsDate, // 检查值是否为 Date
-  IsDefined, // 检查值是否已定义 (value !== undefined, value !== null)
+  IsDate, // 检查值是否已定义 (value !== undefined, value !== null)
   IsEmail, // 检查字符串是否为 email
   IsEnum, // 检查值是否为有效枚举
-  IsInt, // 检查值是否为整数
+  IsInt,
+  IsNotEmpty, // 检查值是否为整数
   IsNumber, // 检查值是否为 number
   IsPositive, // 检查值是否为正数（大于零）
   IsString, // 检查值是否为 string
@@ -20,27 +20,28 @@ import {
   Max, // 检查数值是否小于或等于允许的最大值
   MaxLength, // 检查字符串的长度是否大于给定的数字。
   Min, // 检查数值是否大于或等于允许的最小值
-  MinLength, // 检查字符串的长度是否小于给定的数字
-  NotEquals, // 检查值是否与比较值不匹配 (!==)
+  MinLength, // 检查值是否与比较值不匹配 (!==)
   ValidateNested, // 如果对象包含嵌套对象，并且希望验证器也对它们进行验证。其中，嵌套对象必须是一个类的实例
 } from 'class-validator'
+import { isNumber } from 'lodash'
+
 import {
   ApiEnumProperty,
   ApiUUIDProperty,
 } from './property.decorator'
 import {
-  PhoneNumberSerializer,
   ToArray,
   ToBoolean,
   ToLowerCase,
+  ToTrim,
   ToUpperCase,
 } from './transform.decorator'
 import {
-  IsNullable,
   IsPassword,
   IsPhoneNumber,
   IsTmpKey as IsTemporaryKey,
-  IsUndefinable,
+  IsUsername,
+  IsValidateIfEmpty,
 } from './validator.decorator'
 
 interface IFieldOptions {
@@ -80,39 +81,73 @@ export function NumberField(
 ): PropertyDecorator {
   const decorators = [Type(() => Number)]
 
-  if (options.nullable) {
-    decorators.push(IsNullable({ each: options.each }))
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null, { each: options.each }))
+    decorators.push(
+      IsNotEmpty({
+        each: options.each,
+        message: `${options?.description ?? '$property'}不能为空`,
+      }),
+    )
   }
 
-  if (options.swagger !== false) {
-    decorators.push(ApiProperty({ type: Number, ...options as ApiPropertyOptions }))
-  }
-
-  if (options.each) {
+  if (options.each)
     decorators.push(ToArray())
-  }
 
   if (options.int) {
-    decorators.push(IsInt({ each: options.each }))
+    decorators.push(
+      IsInt({
+        each: options.each,
+        message: `${options?.description ?? '$property'}需为整数`,
+      }),
+    )
   }
   else {
-    decorators.push(IsNumber({}, { each: options.each }))
+    decorators.push(
+      IsNumber({}, {
+        each: options.each,
+        message: `${options?.description ?? '$property'}需为数字`,
+      }),
+    )
   }
 
   if (typeof options.min === 'number') {
-    decorators.push(Min(options.min, { each: options.each }))
+    decorators.push(
+      Min(
+        options.min,
+        {
+          each: options.each,
+          message: `${options?.description ?? '$property'}最小为$constraint1`,
+        },
+      ),
+    )
   }
 
   if (typeof options.max === 'number') {
-    decorators.push(Max(options.max, { each: options.each }))
+    decorators.push(
+      Max(
+        options.max,
+        {
+          each: options.each,
+          message: `${options?.description ?? '$property'}最大为$constraint1`,
+        },
+      ),
+    )
   }
 
   if (options.isPositive) {
-    decorators.push(IsPositive({ each: options.each }))
+    decorators.push(
+      IsPositive({
+        each: options.each,
+        message: `${options?.description ?? '$property'}需为大于零的正数`,
+      }),
+    )
   }
+
+  if (options.swagger !== false)
+    decorators.push(ApiProperty({ type: Number, ...options as ApiPropertyOptions }))
 
   return applyDecorators(...decorators)
 }
@@ -121,7 +156,6 @@ export function NumberFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required'> & INumberFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     NumberField({ required: false, ...options }),
   )
 }
@@ -129,34 +163,65 @@ export function NumberFieldOptional(
 export function StringField(
   options: Omit<ApiPropertyOptions, 'type'> & IStringFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [Type(() => String), IsString({ each: options.each })]
+  const decorators = [
+    Type(() => String),
+    IsString({
+      each: options.each,
+      message: `${options?.description ?? '$property'}需为字符串`,
+    }),
+    ToTrim(),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable({ each: options.each }))
+  if (isNumber(options.minLength)) {
+    decorators.push(
+      MinLength(
+        options.minLength,
+        {
+          each: options.each,
+          message: `${options?.description ?? '$property'}最小长度为$constraint1`,
+        },
+      ),
+    )
+  }
+
+  if (isNumber(options.maxLength)) {
+    decorators.push(
+      MaxLength(
+        options.maxLength,
+        {
+          each: options.each,
+          message: `${options?.description ?? '$property'}最大长度为$constraint1`,
+        },
+      ),
+    )
+  }
+
+  if (options.toLowerCase)
+    decorators.push(ToLowerCase())
+
+  if (options.toUpperCase)
+    decorators.push(ToUpperCase())
+
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null, { each: options.each }))
+    decorators.push(
+      IsNotEmpty({
+        each: options.each,
+        message: `${options?.description ?? '$property'}不能为空`,
+      }),
+    )
   }
 
   if (options.swagger !== false) {
     decorators.push(
-      ApiProperty({ type: String, ...options as ApiPropertyOptions, isArray: options.each }),
+      ApiProperty({
+        type: String,
+        ...options as ApiPropertyOptions,
+        isArray: options.each,
+      }),
     )
-  }
-
-  const minLength = options.minLength || 1
-  decorators.push(MinLength(minLength, { each: options.each }))
-
-  if (options.maxLength) {
-    decorators.push(MaxLength(options.maxLength, { each: options.each }))
-  }
-
-  if (options.toLowerCase) {
-    decorators.push(ToLowerCase())
-  }
-
-  if (options.toUpperCase) {
-    decorators.push(ToUpperCase())
   }
 
   return applyDecorators(...decorators)
@@ -166,7 +231,6 @@ export function StringFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required'> & IStringFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     StringField({ required: false, ...options }),
   )
 }
@@ -174,18 +238,25 @@ export function StringFieldOptional(
 export function BooleanField(
   options: Omit<ApiPropertyOptions, 'type'> & IBooleanFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [ToBoolean(), IsBoolean()]
+  const decorators = [
+    ToBoolean(),
+    IsBoolean({
+      message: `${options?.description ?? '$property'}需为布尔值`,
+    }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
-  if (options.swagger !== false) {
+  if (options.swagger !== false)
     decorators.push(ApiProperty({ type: Boolean, ...options as ApiPropertyOptions }))
-  }
 
   return applyDecorators(...decorators)
 }
@@ -194,7 +265,6 @@ export function BooleanFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required'> & IBooleanFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     BooleanField({ required: false, ...options }),
   )
 }
@@ -202,18 +272,25 @@ export function BooleanFieldOptional(
 export function DateField(
   options: Omit<ApiPropertyOptions, 'type'> & IFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [Type(() => Date), IsDate()]
+  const decorators = [
+    Type(() => Date),
+    IsDate({
+      message: `${options?.description ?? '$property'}需为日期`,
+    }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
-  if (options.swagger !== false) {
+  if (options.swagger !== false)
     decorators.push(ApiProperty({ type: Date, ...options as ApiPropertyOptions }))
-  }
 
   return applyDecorators(...decorators)
 }
@@ -222,7 +299,6 @@ export function DateFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required'> & IFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     DateField({ ...options, required: false }),
   )
 }
@@ -230,18 +306,23 @@ export function DateFieldOptional(
 export function PhoneField(
   options: Omit<ApiPropertyOptions, 'type'> & IFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [IsPhoneNumber(), PhoneNumberSerializer()]
+  const decorators = [
+    IsPhoneNumber({ message: `${options?.description ?? '$property'}不符合格式要求` }),
+    // PhoneNumberSerializer(),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
-  if (options.swagger !== false) {
+  if (options.swagger !== false)
     decorators.push(ApiProperty({ type: String, ...options as ApiPropertyOptions }))
-  }
 
   return applyDecorators(...decorators)
 }
@@ -250,7 +331,6 @@ export function PhoneFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required'> & IFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     PhoneField({ required: false, ...options }),
   )
 }
@@ -259,20 +339,24 @@ export function EmailField(
   options: Omit<ApiPropertyOptions, 'type'> & IStringFieldOptions = {},
 ): PropertyDecorator {
   const decorators = [
-    IsEmail(),
     StringField({ toLowerCase: true, ...options }),
+    IsEmail({}, { message: `${options?.description ?? '$property'}不符合格式要求` }),
   ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(
+      IsNotEmpty({
+        each: options.each,
+        message: `${options?.description ?? '$property'}不能为空`,
+      }),
+    )
   }
 
-  if (options.swagger !== false) {
+  if (options.swagger !== false)
     decorators.push(ApiProperty({ type: String, ...options as ApiPropertyOptions }))
-  }
 
   return applyDecorators(...decorators)
 }
@@ -281,21 +365,57 @@ export function EmailFieldOptional(
   options: Omit<ApiPropertyOptions, 'type'> & IStringFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     EmailField({ required: false, ...options }),
+  )
+}
+
+export function UsernameField(
+  options: Omit<ApiPropertyOptions, 'type' | 'minLength'> & IStringFieldOptions = {},
+): PropertyDecorator {
+  const decorators = [
+    StringField({ ...options, minLength: 4 }),
+    IsUsername({ message: `${options?.description ?? '$property'}不符合格式要求` }),
+  ]
+
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
+  }
+  else {
+    decorators.push(
+      IsNotEmpty({
+        each: options.each,
+        message: `${options?.description ?? '$property'}不能为空`,
+      }),
+    )
+  }
+
+  return applyDecorators(...decorators)
+}
+
+export function UsernameFieldOptional(
+  options: Omit<ApiPropertyOptions, 'type' | 'required' | 'minLength'> & IStringFieldOptions = {},
+): PropertyDecorator {
+  return applyDecorators(
+    UsernameField({ required: false, ...options }),
   )
 }
 
 export function PasswordField(
   options: Omit<ApiPropertyOptions, 'type' | 'minLength'> & IStringFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [StringField({ ...options, minLength: 6 }), IsPassword()]
+  const decorators = [
+    StringField({ ...options, minLength: 6 }),
+    IsPassword({ message: `${options?.description ?? '$property'}不符合格式要求` }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
   return applyDecorators(...decorators)
@@ -305,7 +425,6 @@ export function PasswordFieldOptional(
   options: Omit<ApiPropertyOptions, 'type' | 'required' | 'minLength'> & IStringFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     PasswordField({ required: false, ...options }),
   )
 }
@@ -313,21 +432,30 @@ export function PasswordFieldOptional(
 export function UUIDField(
   options: Omit<ApiPropertyOptions, 'type' | 'format' | 'isArray'> & IFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [Type(() => String), IsUUID('4', { each: options.each })]
+  const decorators = [
+    Type(() => String),
+    IsUUID('4', {
+      each: options.each,
+      message: `${options?.description ?? '$property'}不符合格式要求`,
+    }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
-  }
-
-  if (options.swagger !== false) {
-    decorators.push(ApiUUIDProperty(options))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
   if (options.each) {
     decorators.push(ToArray())
+  }
+
+  if (options.swagger !== false) {
+    decorators.push(ApiUUIDProperty(options))
   }
 
   return applyDecorators(...decorators)
@@ -338,7 +466,6 @@ export function UUIDFieldOptional(
     IFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     UUIDField({ required: false, ...options }),
   )
 }
@@ -346,13 +473,22 @@ export function UUIDFieldOptional(
 export function URLField(
   options: Omit<ApiPropertyOptions, 'type'> & IStringFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [StringField(options), IsUrl({}, { each: true })]
+  const decorators = [
+    StringField(options),
+    IsUrl({}, {
+      each: true,
+      message: `${options?.description ?? '$property'}不符合格式要求`,
+    }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable({ each: options.each }))
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null, { each: options.each }))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
   return applyDecorators(...decorators)
@@ -362,7 +498,6 @@ export function URLFieldOptional(
   options: Omit<ApiPropertyOptions, 'type'> & IStringFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     URLField({ required: false, ...options }),
   )
 }
@@ -375,18 +510,20 @@ export function ClassField<TClass extends Constructor>(
 
   const decorators = [
     Type(() => classValue),
-    ValidateNested({ each: options.each }),
+    ValidateNested({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不符合要求`,
+    }),
   ]
 
-  if (options.required !== false) {
-    decorators.push(IsDefined())
-  }
-
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
   if (options.swagger !== false) {
@@ -398,10 +535,6 @@ export function ClassField<TClass extends Constructor>(
     )
   }
 
-  // if (options.each) {
-  //   decorators.push(ToArray());
-  // }
-
   return applyDecorators(...decorators)
 }
 
@@ -411,7 +544,6 @@ export function ClassFieldOptional<TClass extends Constructor>(
     IClassFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     ClassField(getClass, { required: false, ...options }),
   )
 }
@@ -421,14 +553,20 @@ export function TmpKeyField(
 ): PropertyDecorator {
   const decorators = [
     StringField(options),
-    IsTemporaryKey({ each: options.each }),
+    IsTemporaryKey({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不符合格式要求`,
+    }),
   ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
   if (options.swagger !== false) {
@@ -445,29 +583,34 @@ export function TmpKeyFieldOptional(
     IStringFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     TmpKeyField({ required: false, ...options }),
   )
 }
 
 export function EnumField<TEnum extends object>(
   getEnum: () => TEnum,
-  options: Omit<ApiPropertyOptions, 'type' | 'enum' | 'enumName' | 'isArray'> &
-    IEnumFieldOptions = {},
+  options: Omit<ApiPropertyOptions, 'type' | 'enum' | 'enumName' | 'isArray'> & IEnumFieldOptions = {},
 ): PropertyDecorator {
   const enumValue = getEnum()
-  const decorators = [IsEnum(enumValue, { each: options.each })]
+  const decorators = [
+    IsEnum(enumValue, {
+      each: options.each,
+      message: `${options?.description ?? '$property'}不符合要求`,
+    }),
+  ]
 
-  if (options.nullable) {
-    decorators.push(IsNullable())
+  if (options.required === false) {
+    decorators.push(IsValidateIfEmpty())
   }
   else {
-    decorators.push(NotEquals(null))
+    decorators.push(IsNotEmpty({
+      each: options.each,
+      message: `${options?.description ?? '$property'}不能为空`,
+    }))
   }
 
-  if (options.each) {
+  if (options.each)
     decorators.push(ToArray())
-  }
 
   if (options.swagger !== false) {
     decorators.push(
@@ -480,11 +623,9 @@ export function EnumField<TEnum extends object>(
 
 export function EnumFieldOptional<TEnum extends object>(
   getEnum: () => TEnum,
-  options: Omit<ApiPropertyOptions, 'type' | 'required' | 'enum' | 'enumName'> &
-    IEnumFieldOptions = {},
+  options: Omit<ApiPropertyOptions, 'type' | 'required' | 'enum' | 'enumName'> & IEnumFieldOptions = {},
 ): PropertyDecorator {
   return applyDecorators(
-    IsUndefinable(),
     EnumField(getEnum, { required: false, ...options }),
   )
 }

@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer'
 import { parsePhoneNumber } from 'libphonenumber-js'
-import { castArray } from 'lodash'
+import { castArray, isArray, trim } from 'lodash'
 
 // 将属性值转化为数组
 export function ToArray(): PropertyDecorator {
@@ -20,6 +20,21 @@ export function ToArray(): PropertyDecorator {
     {
       toClassOnly: true, // 仅在普通对象转换为类实例（反序列化）时生效
     },
+  )
+}
+
+// 去除字符串首尾的空白字符
+export function ToTrim(): PropertyDecorator {
+  return Transform(
+    (params) => {
+      const value = params.value as string[] | string
+
+      if (isArray(value))
+        return (value as string[]).map(v => trim(v))
+
+      return trim(value)
+    },
+    { toClassOnly: true },
   )
 }
 

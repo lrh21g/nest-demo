@@ -12,11 +12,10 @@ import { ExtractJwt } from 'passport-jwt'
 
 import { InjectRedis } from '~/common/decorators'
 import { AppConfig, IAppConfig, routerWhiteList } from '~/config'
-import { AuthStrategy, ErrorCode } from '~/constants'
+import { AuthStrategy, ErrorEnum, PUBLIC_KEY } from '~/constants'
 import { AuthService } from '~/modules/auth/auth.service'
 import { TokenService } from '~/modules/auth/token.service'
 import { genTokenBlacklistKey } from '~/utils'
-import { PUBLIC_ROUTE_KEY } from '../decorators'
 import { BusinessException } from '../exceptions'
 
 @Injectable()
@@ -35,7 +34,7 @@ export class JwtAuthGuard extends AuthGuard(AuthStrategy.JWT) {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride(
-      PUBLIC_ROUTE_KEY,
+      PUBLIC_KEY,
       [
         context.getHandler(),
         context.getClass(),
@@ -56,7 +55,7 @@ export class JwtAuthGuard extends AuthGuard(AuthStrategy.JWT) {
     const token = this.jwtFromRequestFn(request)
     // 检查 token 是否在黑名单中
     if (await this.redis.get(genTokenBlacklistKey(token)))
-      throw new BusinessException(ErrorCode.INVALID_LOGIN)
+      throw new BusinessException(ErrorEnum.INVALID_LOGIN)
 
     request.accessToken = token
 
@@ -74,7 +73,7 @@ export class JwtAuthGuard extends AuthGuard(AuthStrategy.JWT) {
 
       // 在 handleRequest 中 user 为 null 时会抛出 UnauthorizedException
       if (err instanceof UnauthorizedException)
-        throw new BusinessException(ErrorCode.INVALID_LOGIN)
+        throw new BusinessException(ErrorEnum.INVALID_LOGIN)
 
       // 判断 token 是否有效且存在, 如果不存在则认证失败
       const isValid = isNil(token)
@@ -82,31 +81,31 @@ export class JwtAuthGuard extends AuthGuard(AuthStrategy.JWT) {
         : await this.tokenService.checkAccessToken(token!)
 
       if (!isValid)
-        throw new BusinessException(ErrorCode.INVALID_LOGIN)
+        throw new BusinessException(ErrorEnum.INVALID_LOGIN)
     }
 
     // 处理 SSE 请求
     if (isSse) {
-      const { userId } = request.params
+      const { uid } = request.params
 
-      if (Number(userId) !== request.user.userId)
-        throw new UnauthorizedException('路径参数 userId 与当前 token 登录的用户 userId 不一致')
+      if (Number(uid) !== request.user.uid)
+        throw new UnauthorizedException('路径参数 uid 与当前 token 登录的用户 uid 不一致')
     }
 
     // 获取密码版本
-    const pv = await this.authService.getPasswordVersionByUserId(request.user.userId)
+    const pv = await this.authService.getPasswordVersionByUid(request.user.uid)
     if (pv !== `${request.user.pv}`) {
       // 密码版本不一致，登录期间已更改过密码
-      throw new BusinessException(ErrorCode.INVALID_LOGIN)
+      throw new BusinessException(ErrorEnum.INVALID_LOGIN)
     }
 
     // 不允许多端登录
     if (!this.appConfig.multiDeviceLogin) {
-      const cacheToken = await this.authService.getTokenByUserId(request.user.userId)
+      const cacheToken = await this.authService.getTokenByUid(request.user.uid)
 
       if (token !== cacheToken) {
         // 与 redis 保存不一致，即二次登录
-        throw new BusinessException(ErrorCode.ACCOUNT_LOGGED_IN_ELSEWHERE)
+        throw new BusinessException(ErrorEnum.ACCOUNT_LOGGED_IN_ELSEWHERE)
       }
     }
 

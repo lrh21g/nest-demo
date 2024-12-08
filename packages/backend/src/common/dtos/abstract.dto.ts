@@ -1,3 +1,5 @@
+import { ApiHideProperty } from '@nestjs/swagger'
+import { Exclude } from 'class-transformer'
 import { DateField, UUIDField } from '../decorators'
 import { AbstractEntity } from '../entity/abstract.entity'
 
@@ -27,4 +29,18 @@ export class AbstractTranslationDto extends AbstractDto {
   constructor(entity: AbstractEntity) {
     super(entity, { excludeFields: true })
   }
+}
+
+export class OperatorDto extends AbstractTranslationDto {
+  constructor(entity: AbstractEntity) {
+    super(entity)
+  }
+
+  @ApiHideProperty()
+  @Exclude()
+  createBy: Uuid
+
+  @ApiHideProperty()
+  @Exclude()
+  updateBy: Uuid
 }
