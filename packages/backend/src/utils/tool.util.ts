@@ -27,3 +27,6 @@ export function getVariableName<TResult>(
 
   return memberParts.at(-1)
 }
+
+// 用于处理 URL 或路径字符串中的重复斜杠问题。
+export const uniqueSlash = (path: string) => path.replace(/(https?:\/)|(\/)+/g, '$1$2')

@@ -1,11 +1,7 @@
 import { RedisKeys } from '~/constants'
 
-type Prefix = 'm-shop'
-const prefix = 'm-shop'
-export function getRedisKey<T extends string = RedisKeys | '*'>(key: T, ...concatKeys: string[]): `${Prefix}:${T}${string | ''}` {
-  return `${prefix}:${key}${
-    concatKeys && concatKeys.length ? `:${concatKeys.join('_')}` : ''
-  }`
+export function getRedisKey<T extends string = RedisKeys | '*'>(key: T, ...concatKeys: string[]): `${T}${string | ''}` {
+  return `${key}${concatKeys && concatKeys.length ? `:${concatKeys.join('_')}` : ''}`
 }
 
 // 生成验证码 redis key
@@ -29,7 +25,7 @@ export function genAuthPVKey(val: string | number) {
 }
 
 // 生成 online user redis key
-export function genOnlineUserKey(tokenId: string) {
+export function genOnlineUserKey(tokenId: Uuid) {
   return `${RedisKeys.ONLINE_USER_PREFIX}${String(tokenId)}` as const
 }
 
