@@ -25,16 +25,16 @@ declare module 'typeorm' {
     ) => Promise<[Entity[], PageMetaDto]>
 
     // 扩展了 leftJoin 和 leftJoinAndSelect 方法，用于左连接查询，允许使用类型安全的属性和别名。
-    leftJoinAndSelect: <AliasEntity extends AbstractEntity, A extends string>(
-      this: SelectQueryBuilder<Entity>,
-      property: `${A}.${Exclude<
-        KeyOfType<AliasEntity, AbstractEntity>,
-        symbol
-      >}`,
-      alias: string,
-      condition?: string,
-      parameters?: ObjectLiteral,
-    ) => this
+    // leftJoinAndSelect: <AliasEntity extends AbstractEntity, A extends string>(
+    //   this: SelectQueryBuilder<Entity>,
+    //   property: `${A}.${Exclude<
+    //     KeyOfType<AliasEntity, AbstractEntity>,
+    //     symbol
+    //   >}`,
+    //   alias: string,
+    //   condition?: string,
+    //   parameters?: ObjectLiteral,
+    // ) => this
 
     leftJoin: <AliasEntity extends AbstractEntity, A extends string>(
       this: SelectQueryBuilder<Entity>,
@@ -48,16 +48,16 @@ declare module 'typeorm' {
     ) => this
 
     // 扩展了 innerJoin 和 innerJoinAndSelect 方法，用于内连接查询，功能类似于左连接。
-    innerJoinAndSelect: <AliasEntity extends AbstractEntity, A extends string>(
-      this: SelectQueryBuilder<Entity>,
-      property: `${A}.${Exclude<
-        KeyOfType<AliasEntity, AbstractEntity>,
-        symbol
-      >}`,
-      alias: string,
-      condition?: string,
-      parameters?: ObjectLiteral,
-    ) => this
+    // innerJoinAndSelect: <AliasEntity extends AbstractEntity, A extends string>(
+    //   this: SelectQueryBuilder<Entity>,
+    //   property: `${A}.${Exclude<
+    //     KeyOfType<AliasEntity, AbstractEntity>,
+    //     symbol
+    //   >}`,
+    //   alias: string,
+    //   condition?: string,
+    //   parameters?: ObjectLiteral,
+    // ) => this
 
     innerJoin: <AliasEntity extends AbstractEntity, A extends string>(
       this: SelectQueryBuilder<Entity>,
