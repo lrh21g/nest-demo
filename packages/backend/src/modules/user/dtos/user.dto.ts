@@ -1,4 +1,4 @@
-import { IntersectionType, PartialType } from '@nestjs/swagger'
+import { IntersectionType, PartialType } from '@nestjs/mapped-types'
 import { Transform } from 'class-transformer'
 import {
   EmailField,
@@ -8,11 +8,13 @@ import {
   StringFieldOptional,
   UsernameField,
 } from '~/common/decorators'
+import { IsUnique } from '~/common/validators/unique.validator'
 import { PageOptionsDto } from '~/helper/paginate/page-options.dto'
 import { UserStatusEnum } from '../user.constant'
+import { UserEntity } from '../user.entity'
 
 export class UserDto {
-  // @IsUnique({ entity: UserEntity, message: '用户名已存在' })
+  @IsUnique({ entity: UserEntity, message: '用户名已存在' })
   @UsernameField({ description: '用户名' })
   username: string
 
@@ -25,7 +27,7 @@ export class UserDto {
   @StringFieldOptional({ description: '昵称' })
   nickname: string
 
-  // @IsUnique({ entity: UserEntity, message: '邮箱已存在' })
+  @IsUnique({ entity: UserEntity, message: '邮箱已存在' })
   @EmailField({ description: 'Email 邮箱' })
   email: string | null
 

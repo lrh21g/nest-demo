@@ -77,7 +77,7 @@ export class UserController {
   // @ApiParam({ name: 'id', type: String, schema: { oneOf: [{ type: 'string' }, { type: 'number' }] } })
   @Perm(permissions.DELETE)
   async delete(
-    @Param('id', new ParseArrayPipe({ items: Number, separator: ',' })) ids: Uuid[],
+    @Param('id', new ParseArrayPipe({ items: String, separator: ',' })) ids: Uuid[],
   ): Promise<void> {
     await this.userService.delete(ids)
     await this.userService.multiForbidden(ids)

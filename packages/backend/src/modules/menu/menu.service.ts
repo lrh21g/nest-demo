@@ -10,6 +10,7 @@ import { ErrorEnum, RedisKeys } from '~/constants'
 import { deleteEmptyChildren, genAuthPermKey, genAuthTokenKey, generatorMenu, generatorRouters } from '~/utils'
 import { RoleService } from '../role/role.service'
 import { MenuDto, MenuQueryDto, MenuUpdateDto } from './dtos/menu.dto'
+import { MenuTypeEnum } from './menu.constant'
 import { MenuEntity } from './menu.entity'
 
 @Injectable()
@@ -93,7 +94,7 @@ export class MenuService {
 
   // 检查菜单创建规则是否符合
   async check(dto: Partial<MenuDto>): Promise<void | never> {
-    if (dto.type === 2 && !dto.parentId) {
+    if (dto.type === MenuTypeEnum.PERMISSION && !dto.parentId) {
       // 无法直接创建权限，必须有parent
       throw new BusinessException(ErrorEnum.PERMISSION_REQUIRES_PARENT)
     }
@@ -120,7 +121,7 @@ export class MenuService {
     // }
     // const childMenus: any = [];
     for (const menu of menus) {
-      if (menu.type !== 2) {
+      if (menu.type !== MenuTypeEnum.PERMISSION) {
         // 子目录下是菜单或目录，继续往下级查找
         const c = await this.findChildMenus(menu.id)
         allMenus.push(c)
@@ -160,7 +161,7 @@ export class MenuService {
     if (this.roleService.hasAdminRole(roleIds)) {
       result = await this.menuRepository.findBy({
         permission: Not(IsNull()),
-        type: In([1, 2]),
+        type: In([MenuTypeEnum.MENU, MenuTypeEnum.PERMISSION]),
       })
     }
     else {
@@ -177,7 +178,7 @@ export class MenuService {
         // andWhere 用于在查询中添加更多的条件
         // role.id IN (:...roleIds) 表示筛选角色 id 在指定的 roleIds 数组中。
         .andWhere('role.id IN (:...roleIds)', { roleIds })
-        .andWhere('menu.type IN (1,2)')
+        .andWhere(`menu.type IN (${MenuTypeEnum.MENU},${MenuTypeEnum.PERMISSION})`)
         .andWhere('menu.permission IS NOT NULL')
         // getMany 表示查询所有符合条件的结果，并返回一个包含多个 menu 实体的数组。
         .getMany()

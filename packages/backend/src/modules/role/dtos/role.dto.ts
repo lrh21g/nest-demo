@@ -1,8 +1,9 @@
-import { IntersectionType, PartialType } from '@nestjs/swagger'
-import { Matches } from 'class-validator'
+import { IntersectionType, PartialType } from '@nestjs/mapped-types'
+import { Transform } from 'class-transformer'
 
+import { Matches } from 'class-validator'
 import { EnumFieldOptional, StringField, StringFieldOptional, UUIDFieldOptional } from '~/common/decorators'
-import { OperatorDto } from '~/common/dtos/abstract.dto'
+import { OperatorDto } from '~/common/dtos/operator.dto'
 import { IsUnique } from '~/common/validators/unique.validator'
 import { PageOptionsDto } from '~/helper/paginate/page-options.dto'
 import { RoleStatusEnum } from '../role.constant'
@@ -20,7 +21,8 @@ export class RoleDto extends OperatorDto {
   @StringFieldOptional({ description: '角色备注' })
   remark?: string
 
-  @EnumFieldOptional(() => RoleStatusEnum, { description: '状态' })
+  @Transform(({ value }) => value || RoleStatusEnum.ENABLE)
+  @EnumFieldOptional(() => RoleStatusEnum, { description: '状态：1-启用，0-禁用' })
   status: number
 
   @UUIDFieldOptional({ each: true, description: '关联菜单、权限编号' })
@@ -32,18 +34,6 @@ export class RoleResponse {
 
   constructor(role: RoleEntity, options?: { menuIds?: Uuid[] }) {
     Object.assign(this, role)
-    this.menuIds = options?.menuIds || []
-  }
-}
-
-export class RoleDtoRes extends RoleDto {
-  constructor(role: RoleEntity, options?: { menuIds?: Uuid[] }) {
-    super(role)
-
-    this.name = role.name
-    this.value = role.value
-    this.remark = role.remark
-    this.status = role.status
     this.menuIds = options?.menuIds || []
   }
 }

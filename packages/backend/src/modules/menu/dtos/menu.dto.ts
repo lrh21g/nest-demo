@@ -1,23 +1,17 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger'
-import {
-  IsBoolean,
-  ValidateIf,
-} from 'class-validator'
-import { EnumField, EnumFieldOptional, NumberField, StringField, StringFieldOptional, UUIDFieldOptional } from '~/common/decorators'
-import { OperatorDto } from '~/common/dtos/abstract.dto'
+import { PartialType, PickType } from '@nestjs/mapped-types'
+import { ApiProperty } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
+import { IsBoolean, ValidateIf } from 'class-validator'
+import { toNumber } from 'lodash'
+
+import { EnumField, NumberField, StringField, StringFieldOptional, UUIDFieldOptional } from '~/common/decorators'
+import { OperatorDto } from '~/common/dtos/operator.dto'
 import { MenuExtOpenModeEnum, MenuKeepAliveEnum, MenuShowEnum, MenuStatusEnum, MenuTypeEnum } from '../menu.constant'
 
 export class MenuDto extends OperatorDto {
-  @ApiProperty({
-    description: `
-菜单类型:
-- 0: 目录
-- 1: 菜单
-- 2: 权限
-    `,
-    enum: MenuTypeEnum,
-  })
-  @EnumFieldOptional(() => MenuTypeEnum, { description: '菜单类型' })
+  // 菜单类型: 0-目录；1-菜单；2-权限
+  @Transform(({ value }) => toNumber(value))
+  @EnumField(() => MenuTypeEnum, { description: `菜单类型` })
   type: MenuTypeEnum
 
   @UUIDFieldOptional({ description: '父级菜单' })
@@ -39,22 +33,27 @@ export class MenuDto extends OperatorDto {
   isExt: boolean
 
   @ValidateIf((o: MenuDto) => o.isExt)
-  @EnumField(() => MenuExtOpenModeEnum, { description: '外链打开方式', default: 1 })
+  @Transform(({ value }) => toNumber(value))
+  @EnumField(() => MenuExtOpenModeEnum, { description: '外链打开方式', default: MenuExtOpenModeEnum.OUTER })
   extOpenMode: number
 
   @ValidateIf((o: MenuDto) => o.type !== MenuTypeEnum.PERMISSION)
-  @EnumField(() => MenuShowEnum, { description: '菜单是否显示', default: 1 })
+  @Transform(({ value }) => toNumber(value))
+  @EnumField(() => MenuShowEnum, { description: '菜单是否显示', default: MenuShowEnum.SHOW })
   show: number
 
-  @ValidateIf((o: MenuDto) => o.type !== MenuTypeEnum.PERMISSION && o.show === 0)
-  @StringFieldOptional({ description: '设置当前路由高亮的菜单项，一般用于详情页' })
+  // 设置当前路由高亮的菜单项，一般用于详情页
+  @ValidateIf((o: MenuDto) => o.type !== MenuTypeEnum.PERMISSION && o.show === MenuShowEnum.SHOW)
+  @StringFieldOptional({ description: '设置当前路由高亮的菜单项（一般用于详情页）' })
   activeMenu?: string
 
   @ValidateIf((o: MenuDto) => o.type === 1)
-  @EnumField(() => MenuKeepAliveEnum, { description: '是否开启页面缓存', default: 1 })
+  @Transform(({ value }) => toNumber(value))
+  @EnumField(() => MenuKeepAliveEnum, { description: '是否开启页面缓存', default: MenuKeepAliveEnum.KEEP_ALIVE })
   keepAlive: number
 
-  @EnumField(() => MenuStatusEnum, { description: '状态', default: 1 })
+  @Transform(({ value }) => toNumber(value))
+  @EnumField(() => MenuStatusEnum, { description: '状态', default: MenuStatusEnum.ENABLE })
   status: number
 
   @ValidateIf((o: MenuDto) => o.type !== MenuTypeEnum.PERMISSION)
@@ -72,4 +71,4 @@ export class MenuDto extends OperatorDto {
 
 export class MenuUpdateDto extends PartialType(MenuDto) {}
 
-export class MenuQueryDto extends PartialType(MenuDto) {}
+export class MenuQueryDto extends PartialType(PickType(MenuDto, ['name', 'path', 'permission', 'component', 'status'])) {}

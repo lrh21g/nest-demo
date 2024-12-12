@@ -1,8 +1,8 @@
 import { BadRequestException, Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
-import { definePermission, Perm, UUIDParam } from '~/common/decorators'
-import { UpdaterPipe } from '~/common/pipes'
+import { AdminIdParam, definePermission, Perm, UUIDParam } from '~/common/decorators'
+import { CreatorPipe, UpdaterPipe } from '~/common/pipes'
 import { MenuService } from '../menu/menu.service'
 import { RoleDto, RoleQueryDto, RoleUpdateDto } from './dtos/role.dto'
 import { RoleService } from './role.service'
@@ -35,14 +35,14 @@ export class RoleController {
   @ApiOperation({ summary: '获取角色信息' })
   // @ApiResult({ type: RoleInfo })
   @Perm(permissions.READ)
-  async info(@UUIDParam('id') id: Uuid) {
+  async info(@AdminIdParam('id') id: Uuid) {
     return this.roleService.info(id)
   }
 
   @Post()
   @ApiOperation({ summary: '新增角色' })
   @Perm(permissions.CREATE)
-  async create(@Body() dto: RoleDto): Promise<void> {
+  async create(@Body(CreatorPipe) dto: RoleDto): Promise<void> {
     await this.roleService.create(dto)
   }
 

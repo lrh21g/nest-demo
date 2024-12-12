@@ -14,6 +14,7 @@ import { flattenDeep } from 'lodash'
 import { definePermission, getDefinePermissions, Perm, UUIDParam } from '~/common/decorators'
 import { CreatorPipe, UpdaterPipe } from '~/common/pipes'
 import { MenuDto, MenuQueryDto, MenuUpdateDto } from './dtos/menu.dto'
+import { MenuTypeEnum } from './menu.constant'
 import { MenuService } from './menu.service'
 
 export const permissions = definePermission('system:menu', {
@@ -31,6 +32,12 @@ export class MenuController {
     private menuService: MenuService,
   ) {}
 
+  @Get('permissions')
+  @ApiOperation({ summary: '获取后端定义的所有权限集' })
+  async getPermissions(): Promise<string[]> {
+    return getDefinePermissions()
+  }
+
   @Get()
   @ApiOperation({ summary: '获取所有菜单列表' })
   @Perm(permissions.LIST)
@@ -46,18 +53,17 @@ export class MenuController {
   }
 
   @Post()
-  // @ApiOperation({ summary: '新增菜单或权限' })
+  @ApiOperation({ summary: '新增菜单或权限' })
   @Perm(permissions.CREATE)
   async create(
     @Body(CreatorPipe) dto: MenuDto,
   ): Promise<void> {
-    // check
     await this.menuService.check(dto)
     if (!dto.parentId)
       dto.parentId = null
 
     await this.menuService.create(dto)
-    if (dto.type === 2) {
+    if (dto.type === MenuTypeEnum.PERMISSION) {
       // 如果是权限发生更改，则刷新所有在线用户的权限
       await this.menuService.refreshOnlineUserPerms()
     }
@@ -75,7 +81,7 @@ export class MenuController {
       dto.parentId = null
 
     await this.menuService.update(id, dto)
-    if (dto.type === 2) {
+    if (dto.type === MenuTypeEnum.PERMISSION) {
       // 如果是权限发生更改，则刷新所有在线用户的权限
       await this.menuService.refreshOnlineUserPerms()
     }
@@ -93,11 +99,5 @@ export class MenuController {
     await this.menuService.deleteMenuItem(flattenDeep([id, childMenus]))
     // 刷新在线用户权限
     await this.menuService.refreshOnlineUserPerms()
-  }
-
-  @Get('permissions')
-  @ApiOperation({ summary: '获取后端定义的所有权限集' })
-  async getPermissions(): Promise<string[]> {
-    return getDefinePermissions()
   }
 }

@@ -22,7 +22,10 @@ export class UserSubscriber implements EntitySubscriberInterface<UserEntity> {
   beforeUpdate(event: UpdateEvent<UserEntity>): void {
     const entity = event.entity as UserEntity
 
-    if (entity.password !== event.databaseEntity.password) {
+    // see: https://github.com/typeorm/typeorm/issues/9973
+    // event.entity：表示更新后的实体。
+    // event.databaseEntity：表示数据库中原本的实体（即更新之前的状态）。
+    if (entity.password && entity.password !== event.databaseEntity.password) {
       entity.password = generateHash(entity.password!)
     }
   }

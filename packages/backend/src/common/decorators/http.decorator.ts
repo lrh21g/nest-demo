@@ -5,6 +5,7 @@ import {
   PipeTransform,
 } from '@nestjs/common'
 import { Type } from '@nestjs/common/interfaces'
+import { AdminIdPipe } from '../pipes'
 
 // UUIDParam 用于验证传入的 URL 参数是否是有效的 UUID（版本4）。
 export function UUIDParam(
@@ -18,6 +19,17 @@ export function UUIDParam(
       version: '4',
       exceptionFactory: () => { throw new NotAcceptableException('id 格式不正确') },
     }),
+    ...pipes,
+  )
+}
+
+export function AdminIdParam(
+  property: string,
+  ...pipes: Array<Type<PipeTransform> | PipeTransform>
+): ParameterDecorator {
+  return Param(
+    property,
+    new AdminIdPipe(),
     ...pipes,
   )
 }

@@ -28,7 +28,7 @@ export class UserService {
     @InjectRepository(RoleEntity)
     private readonly roleRepository: Repository<RoleEntity>,
     @InjectEntityManager() private entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async findOne(findData: FindOptionsWhere<UserEntity>): Promise<UserEntity | null> {
     return await this.userRepository.findOneBy(findData)
@@ -129,7 +129,10 @@ export class UserService {
   async forceUpdatePassword(uid: Uuid, password: string): Promise<void> {
     const user = await this.userRepository.findOneBy({ id: uid })
 
-    await this.userRepository.update({ id: uid }, { password })
+    user.password = password
+
+    // await this.userRepository.update({ id: uid }, { password })
+    await this.userRepository.save(user)
     await this.upgradePasswordV(user.id)
   }
 
@@ -171,14 +174,22 @@ export class UserService {
       if (password)
         await this.forceUpdatePassword(uid, password)
 
-      await manager.update(
-        UserEntity,
-        { id: uid },
-        {
-          ...data,
-          status,
-        },
-      )
+      const updateUserInfo = await this.userRepository.findOneBy({ id: uid })
+      if (updateUserInfo) {
+        Object.assign(updateUserInfo, data)
+        updateUserInfo.status = status
+
+        await manager.save(UserEntity, updateUserInfo)
+      }
+
+      // await manager.update(
+      //   UserEntity,
+      //   { id: uid },
+      //   {
+      //     ...data,
+      //     status,
+      //   },
+      // )
 
       const user = await this.userRepository
         .createQueryBuilder('user')

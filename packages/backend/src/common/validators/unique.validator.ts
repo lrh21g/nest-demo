@@ -99,14 +99,14 @@ export class UniqueConstraint implements ValidatorConstraintInterface {
     //   return 'getManager function not been found!'
 
     if (!entity)
-      return 'Model not been specified!'
+      return '未指定实体!'
 
     if (message) {
       return message
     }
 
     // return `${queryProperty} of ${entity.name} must been unique!`
-    return `${queryProperty} of ${entity.name} must been unique!`
+    return `${entity.name}的${queryProperty}必须是唯一的!`
   }
 }
 

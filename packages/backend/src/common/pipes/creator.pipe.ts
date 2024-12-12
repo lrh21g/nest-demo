@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 
-import { OperatorDto } from '../dtos/abstract.dto'
+import { OperatorDto } from '../dtos/operator.dto'
 
 @Injectable()
 export class CreatorPipe implements PipeTransform {

@@ -4,6 +4,7 @@ import { HttpStatus, Logger, UnprocessableEntityException, ValidationPipe } from
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import { useContainer } from 'class-validator'
 
 import { AppModule } from './app.module'
 import { LoggingInterceptor } from './common/interceptors'
@@ -30,6 +31,8 @@ async function bootstrap(): Promise<NestExpressApplication> {
     },
   )
 
+  // class-validator 的 DTO 类中注入 nest 容器的依赖 (用于自定义验证器)
+  useContainer(app.select(AppModule), { fallbackOnErrors: true })
   // 为每个 HTTP 路由路径注册一个前缀
   app.setGlobalPrefix(globalPrefix)
 
